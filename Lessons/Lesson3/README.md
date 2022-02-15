@@ -42,7 +42,7 @@ OpenZeppelin's Ownable contract
 Below is the Ownable contract taken from the OpenZeppelin Solidity library. OpenZeppelin is a library of secure and community-vetted smart contracts that you can use in your own DApps. After this lesson, we highly recommend you check out their site to further your learning!
 
 Give the contract below a read-through. You're going to see a few things we haven't learned yet, but don't worry, we'll talk about them afterward.
-
+```
 /**
  * @title Ownable
  * @dev The Ownable contract has an owner address, and provides basic authorization control
@@ -116,6 +116,7 @@ contract Ownable {
     _owner = newOwner;
   }
 }
+```
 A few new things here we haven't seen before:
 
 Constructors: constructor() is a constructor, which is an optional special function that has the same name as the contract. It will get executed only one time, when the contract is first created.
@@ -153,7 +154,7 @@ Function Modifiers
 A function modifier looks just like a function, but uses the keyword modifier instead of the keyword function. And it can't be called directly like a function can — instead we can attach the modifier's name at the end of a function definition to change that function's behavior.
 
 Let's take a closer look by examining onlyOwner:
-
+```
 pragma solidity >=0.5.0 <0.6.0;
 
 /**
@@ -229,6 +230,7 @@ contract Ownable {
     _owner = newOwner;
   }
 }
+```
 Notice the onlyOwner modifier on the renounceOwnership function. When you call renounceOwnership, the code inside onlyOwner executes first. Then when it hits the _; statement in onlyOwner, it goes back and executes the code inside renounceOwnership.
 
 So while there are other ways you can use modifiers, one of the most common use-cases is to add a quick require check before a function executes.
@@ -271,7 +273,7 @@ Normally there's no benefit to using these sub-types because Solidity reserves 2
 But there's an exception to this: inside structs.
 
 If you have multiple uints inside a struct, using a smaller-sized uint when possible will allow Solidity to pack these variables together to take up less storage. For example:
-
+```
 struct NormalStruct {
   uint a;
   uint b;
@@ -283,6 +285,7 @@ struct MiniMe {
   uint32 b;
   uint c;
 }
+```
 
 // `mini` will cost less gas than `normal` because of struct packing
 NormalStruct normal = NormalStruct(10, 20, 30);
@@ -316,7 +319,7 @@ Note: Unix time is traditionally stored in a 32-bit number. This will lead to th
 Solidity also contains the time units seconds, minutes, hours, days, weeks and years. These will convert to a uint of the number of seconds in that length of time. So 1 minutes is 60, 1 hours is 3600 (60 seconds x 60 minutes), 1 days is 86400 (24 hours x 60 minutes x 60 seconds), etc.
 
 Here's an example of how these time units can be useful:
-
+```
 uint lastUpdated;
 
 // Set `lastUpdated` to `now`
@@ -329,6 +332,7 @@ function updateTimestamp() public {
 function fiveMinutesHavePassed() public view returns (bool) {
   return (now >= (lastUpdated + 5 minutes));
 }
+```
 We can use these time units for our Zombie cooldown feature.
 
 Put it to the test
@@ -363,10 +367,11 @@ Passing structs as arguments
 You can pass a storage pointer to a struct as an argument to a private or internal function. This is useful, for example, for passing around our Zombie structs between functions.
 
 The syntax looks like this:
-
+```
 function _doStuff(Zombie storage _zombie) internal {
   // do stuff with _zombie
 }
+```
 This way we can pass a reference to our zombie into a function instead of passing in a zombie ID and looking it up.
 
 Put it to the test
@@ -403,7 +408,7 @@ Let's make it so zombies gain special abilities after reaching a certain level. 
 
 Function modifiers with arguments
 Previously we looked at the simple example of onlyOwner. But function modifiers can also take arguments. For example:
-
+```
 // A mapping to store a user's age:
 mapping (uint => uint) public age;
 
@@ -418,6 +423,7 @@ modifier olderThan(uint _age, uint _userId) {
 function driveCar(uint _userId) public olderThan(16, _userId) {
   // Some function logic
 }
+```
 You can see here that the olderThan modifier takes arguments just like a function does. And that the driveCar function passes its arguments to the modifier.
 
 Let's try making our own modifier that uses the zombie level property to restrict access to special abilities.
@@ -437,7 +443,7 @@ Our game will have some incentives for people to level up their zombies:
 For zombies level 2 and higher, users will be able to change their name.
 For zombies level 20 and higher, users will be able to give them custom DNA.
 We'll implement these functions below. Here's the example code from the previous lesson for reference:
-
+```
 // A mapping to store a user's age:
 mapping (uint => uint) public age;
 
@@ -451,6 +457,7 @@ modifier olderThan(uint _age, uint _userId) {
 function driveCar(uint _userId) public olderThan(16, _userId) {
   // Some function logic
 }
+```
 Put it to the test
 Create a function called changeName. It will take 2 arguments: _zombieId (a uint), and _newName (a string with the data location set to calldata ), and make it external. It should have the aboveLevel modifier, and should pass in 2 for the _level parameter. (Don't forget to also pass the _zombieId).
 Note: calldata is somehow similar to memory, but it's only available to external functions.
@@ -504,7 +511,7 @@ Declaring arrays in memory
 You can use the memory keyword with arrays to create a new array inside a function without needing to write anything to storage. The array will only exist until the end of the function call, and this is a lot cheaper gas-wise than updating an array in storage — free if it's a view function called externally.
 
 Here's how to declare an array in memory:
-
+```
 function getArray() external pure returns(uint[] memory) {
   // Instantiate a new array in memory with a length of 3
   uint[] memory values = new uint[](3);
@@ -516,6 +523,7 @@ function getArray() external pure returns(uint[] memory) {
 
   return values;
 }
+```
 This is a trivial example just to show you the syntax, but in the next chapter we'll look at combining this with for loops for real use-cases.
 
 Note: memory arrays must be created with a length argument (in this example, 3). They currently cannot be resized like storage arrays can with array.push(), although this may be changed in a future version of Solidity.
@@ -535,13 +543,15 @@ In the previous chapter, we mentioned that sometimes you'll want to use a for lo
 Let's look at why.
 
 For our getZombiesByOwner function, a naive implementation would be to store a mapping of owners to zombie armies in the ZombieFactory contract:
-
+```
 mapping (address => uint[]) public ownerToZombies
+```
 Then every time we create a new zombie, we would simply use ownerToZombies[owner].push(zombieId) to add it to that owner's zombies array. And getZombiesByOwner would be a very straightforward function:
-
+```
 function getZombiesByOwner(address _owner) external view returns (uint[] memory) {
   return ownerToZombies[_owner];
 }
+```
 The problem with this approach
 This approach is tempting for its simplicity. But let's look at what happens if we later add a function to transfer a zombie from one owner to another (which we'll definitely want to add in a later lesson!).
 
@@ -563,7 +573,7 @@ Using for loops
 The syntax of for loops in Solidity is similar to JavaScript.
 
 Let's look at an example where we want to make an array of even numbers:
-
+```
 function getEvens() pure external returns(uint[] memory) {
   uint[] memory evens = new uint[](5);
   // Keep track of the index in the new array:
@@ -580,6 +590,7 @@ function getEvens() pure external returns(uint[] memory) {
   }
   return evens;
 }
+```
 This function will return an array with the contents [2, 4, 6, 8, 10].
 
 Put it to the test
